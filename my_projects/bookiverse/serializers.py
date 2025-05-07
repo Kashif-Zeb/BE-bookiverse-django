@@ -1,3 +1,5 @@
+from dataclasses import fields
+from pyexpat import model
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from .models import Users
@@ -155,3 +157,9 @@ class user_serializer(serializers.ModelSerializer):
 class login_serializer(serializers.Serializer):
     email = serializers.EmailField(required=True,max_length=200)
     password = serializers.CharField(required=True,max_length=50)
+
+from .models import Flight
+class flight_serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Flight
+        fields = '__all__'

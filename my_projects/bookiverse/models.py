@@ -87,5 +87,13 @@ class Users(models.Model):
     hash_password = models.CharField(null=False,max_length=55)
     role = models.CharField(null=False,max_length=50)
 
-    # REQUIRED_FIELDS = ["user_name"]
-    # objects = BaseUserManager()
+
+class Flight(models.Model):
+    flight_id = models.BigAutoField(primary_key=True)
+    flight_name =  models.CharField(null=False,max_length=50)  
+    plane_name = models.CharField(null=False,max_length=50)  
+    flight_origin = models.CharField(null=False,max_length=50)  
+    flight_departure = models.CharField(null=False,max_length=50)  
+    flight_date =  models.DateTimeField(null=False)
+    flight_price = models.IntegerField(null=False)
+    company = models.CharField(null=False,max_length=50)  

@@ -19,10 +19,10 @@ urlpatterns = [
     path('', include(router.urls)),
     path("register",views.user_registraion.as_view(),name="registrations"),
     path("login",views.login,name="login"),
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   # LOGIN
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   # LOGIN
+    # path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('refresh', views.CustomRefreshTokenView.as_view(), name='token_refresh_custom'),
-
+    path('flight',views.Flight.as_view(),name="flight Api view")
     # path("create_job/",views.create_job_with_create_mixin.as_view(),name="create job"),
     # path("get_job/",views.get_job_by_id.as_view(),name="get job by id"),
     # path("get_all_job/",views.JobListView.as_view(),name="get all id"),

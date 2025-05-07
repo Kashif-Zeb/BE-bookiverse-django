@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Users
+from .models import Users,Flight
 # # Register your models here.
 # @admin.register(Department)
 # class Department_page(admin.ModelAdmin):
@@ -84,3 +84,16 @@ class User_page(admin.ModelAdmin):
     "email" ,
     "hash_password" ,
     "role"]
+
+@admin.register(Flight)
+class Flight_page(admin.ModelAdmin):
+    list_display = [
+        "flight_id",
+        "flight_name",
+        "plane_name",
+        "flight_origin",
+        "flight_departure",
+        "flight_date",
+        "flight_price",
+        "company"
+    ]

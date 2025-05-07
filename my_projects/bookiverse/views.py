@@ -1,3 +1,4 @@
+from re import L
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets
@@ -22,6 +23,7 @@ from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication,J
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 # Create your views here.
 from functools import wraps
+
 # class custom_pagination(PageNumberPagination):
 #     page_size_query_param = "per_page"
 #     page_query_param = "page"
@@ -377,7 +379,8 @@ from functools import wraps
 #     queryset = Performance.objects.all()
 #     serializer_class = performance_serializer
 
-
+from .serializers import flight_serializer
+from .models import Flight as flightmodel
 
 class user_registraion(generics.CreateAPIView):
     serializer_class = user_serializer
@@ -400,10 +403,12 @@ def login(request):
                 refresh = RefreshToken
                 refresh=  refresh.for_user(user)
                 refresh["role"] = user.role
+                data = serializer.data
+                del data['hash_password']
                 return JsonResponse({
             'refresh_token': str(refresh),
             'access_token': str(refresh.access_token),
-            'user_details':serializer.data
+            'user_details':data
         })
             else:
                 return Response("email is invalid",status=status.HTTP_422_UNPROCESSABLE_ENTITY)
@@ -427,3 +432,24 @@ class CustomRefreshTokenView(APIView):
 
         except TokenError as e:
             return Response({"detail": "Invalid or expired refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class Flight(APIView):
+    authentication_classes = [JWTAuthentication] 
+    def post(self,request):
+        serializers = flight_serializer(data=request.data)
+        if serializers.is_valid(raise_exception=True):
+            serializers.save()
+            return Response(serializers.data,status=status.HTTP_200_OK)
+        else:
+            return Response(serializers.errors,status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+    
+    def get(self, request):
+        flights = flightmodel.objects.all()   
+        if flights.exists():  
+            serializer = flight_serializer(flights, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "No flight data is currently available"},
+            status=status.HTTP_404_NOT_FOUND
+        )
