@@ -379,8 +379,8 @@ from functools import wraps
 #     queryset = Performance.objects.all()
 #     serializer_class = performance_serializer
 
-from .serializers import flight_serializer
-from .models import Flight as flightmodel
+from .serializers import flight_serializer,hotel_serializer
+from .models import Flight as flightmodel,Hotel
 
 class user_registraion(generics.CreateAPIView):
     serializer_class = user_serializer
@@ -425,19 +425,24 @@ class CustomRefreshTokenView(APIView):
 
         try:
             refresh = RefreshToken(refresh_token)
-            access_token = str(refresh.access_token)
+            user = refresh.user
+
+            # Generate new refresh and access tokens
+            new_refresh = RefreshToken.for_user(user)
+            access_token = str(new_refresh.access_token)
             return Response({
-                'access_token': access_token
+                'access_token': access_token,
+                'refresh_token':new_refresh
             }, status=status.HTTP_200_OK)
 
         except TokenError as e:
             return Response({"detail": "Invalid or expired refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class Flight(APIView):
+class Hotels(APIView):
     authentication_classes = [JWTAuthentication] 
     def post(self,request):
-        serializers = flight_serializer(data=request.data)
+        serializers = hotel_serializer(data=request.data)
         if serializers.is_valid(raise_exception=True):
             serializers.save()
             return Response(serializers.data,status=status.HTTP_200_OK)
@@ -445,11 +450,44 @@ class Flight(APIView):
             return Response(serializers.errors,status=status.HTTP_422_UNPROCESSABLE_ENTITY)
     
     def get(self, request):
-        flights = flightmodel.objects.all()   
+        flights = Hotel.objects.all()   
         if flights.exists():  
-            serializer = flight_serializer(flights, many=True)
+            serializer = hotel_serializer(flights, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(
             {"message": "No flight data is currently available"},
             status=status.HTTP_404_NOT_FOUND
         )
+# import django_filters
+from django_filters.rest_framework import DjangoFilterBackend
+import django_filters
+from rest_framework import filters
+class flight_filter(django_filters.FilterSet):
+    min_price = django_filters.NumberFilter(field_name="flight_price", lookup_expr='gte')
+    max_price = django_filters.NumberFilter(field_name="flight_price", lookup_expr='lte')
+    departure_date = django_filters.DateFilter(field_name="flight_departure", lookup_expr='date')
+    class Meta:
+        model = flightmodel
+        fields = ['min_price',"max_price","departure_date"]    
+class Flights(viewsets.ModelViewSet):
+    queryset = flightmodel.objects.all()
+    authentication_classes = [JWTAuthentication]
+    serializer_class = flight_serializer
+    filter_backends = [DjangoFilterBackend,filters.SearchFilter,filters.OrderingFilter]
+    filterset_class = flight_filter
+    search_fields = ['plane_name','flight_name','flight_origin',"flight_departure"]
+    ordering_fields = ["flight_origin",'flight_date',"flight_price"]
+    ordering = ['flight_departure']
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Handle custom date range filtering
+        flight_date_from = self.request.query_params.get('flight_date_from')
+        flight_date_to = self.request.query_params.get('flight_date_to')
+        
+        if flight_date_from and flight_date_to:
+            queryset = queryset.filter(
+                flight_date__date__gte=flight_date_from,
+                flight_date__date__lte=flight_date_to
+            )
+        return queryset

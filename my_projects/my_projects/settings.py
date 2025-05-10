@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     "rest_framework",
     'rest_framework_simplejwt',
     "django_celery_results",
-    "corsheaders"
+    "corsheaders",
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -196,8 +197,10 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 # from my_projects.hr.models import Users
 
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # if your frontend is running on React / Vue at localhost:3000
-    "http://127.0.0.1:3000",
-    # Add any other domains here
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",  # if your frontend is running on React / Vue at localhost:3000
+#     "http://127.0.0.1:3000",
+#     # Add any other domains here
+# ]
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True

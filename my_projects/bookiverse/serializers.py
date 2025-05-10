@@ -158,8 +158,13 @@ class login_serializer(serializers.Serializer):
     email = serializers.EmailField(required=True,max_length=200)
     password = serializers.CharField(required=True,max_length=50)
 
-from .models import Flight
+from .models import Flight,Hotel
 class flight_serializer(serializers.ModelSerializer):
     class Meta:
         model = Flight
+        fields = '__all__'
+
+class hotel_serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hotel
         fields = '__all__'

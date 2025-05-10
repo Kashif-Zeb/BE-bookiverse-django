@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 # Create your models here.
 
 # class Department(models.Model):
@@ -86,7 +87,7 @@ class Users(models.Model):
     email  = models.EmailField(null=False,unique=True)
     hash_password = models.CharField(null=False,max_length=55)
     role = models.CharField(null=False,max_length=50)
-
+    flight = models.ManyToManyField('Flight',related_name='flights')
 
 class Flight(models.Model):
     flight_id = models.BigAutoField(primary_key=True)
@@ -97,3 +98,27 @@ class Flight(models.Model):
     flight_date =  models.DateTimeField(null=False)
     flight_price = models.IntegerField(null=False)
     company = models.CharField(null=False,max_length=50)  
+
+def spacechecker(value:str):
+    if value.startswith(" ") and value.endswith(" "):
+        raise ValidationError("the hotel name cannot start and end with space/white characters")
+
+room_choices = [
+    ('1',"1 rooms"),
+    ('2',"2 rooms"),
+    ('3',"3 rooms"),
+    ('4',"4 rooms"),
+    ('suite',"suite"),
+]
+class Hotel(models.Model):
+    hotel_id = models.BigAutoField(primary_key=True)
+    hotel_name = models.CharField(max_length=30,error_messages={
+        'max_length': "Username too long (max 30 chars)",
+        'required': "You must choose a username",
+    },validators=[spacechecker],null=False)
+    hotel_rooms = models.CharField(null=False,choices=room_choices,max_length=30)
+    hotel_price = models.IntegerField(null=False)
+
+
+
+    

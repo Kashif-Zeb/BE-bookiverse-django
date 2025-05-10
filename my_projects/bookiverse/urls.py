@@ -8,13 +8,13 @@ from rest_framework_simplejwt.views import (
 from . import views 
 router = DefaultRouter()
 # router.register(prefix='dept', viewset=views.DepartmentViewSet, basename='department')
-# router.register(prefix="benefits", viewset=views.crud_benefit, basename="benefit")
 # router.register(prefix="employees", viewset=views.crud_employee_again_for_benefit, basename="employee")
 # router.register(prefix="payrolls", viewset=views.modelview_of_payroll, basename="payroll")
 # router.register(prefix="performances", viewset=views.modelview_of_performance, basename="performance")
 # router.register(prefix="trainings", viewset=views.modelview_of_training, basename="training")
 # router.register(prefix="jobs", viewset=views.crud_job_again_for_benefit, basename="job")
 # router.register(prefix="refresh"viewset=views.CustomRefreshTokenView, basename="refres")
+router.register(prefix="flight", viewset=views.Flights, basename="hotel")
 urlpatterns = [
     path('', include(router.urls)),
     path("register",views.user_registraion.as_view(),name="registrations"),
@@ -22,7 +22,7 @@ urlpatterns = [
     # path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   # LOGIN
     # path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('refresh', views.CustomRefreshTokenView.as_view(), name='token_refresh_custom'),
-    path('flight',views.Flight.as_view(),name="flight Api view")
+    path('hotel',views.Hotels.as_view(),name="flight Api view")
     # path("create_job/",views.create_job_with_create_mixin.as_view(),name="create job"),
     # path("get_job/",views.get_job_by_id.as_view(),name="get job by id"),
     # path("get_all_job/",views.JobListView.as_view(),name="get all id"),

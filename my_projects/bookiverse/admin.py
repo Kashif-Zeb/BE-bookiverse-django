@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Users,Flight
+from .models import Users,Flight,Hotel
 # # Register your models here.
 # @admin.register(Department)
 # class Department_page(admin.ModelAdmin):
@@ -96,4 +96,13 @@ class Flight_page(admin.ModelAdmin):
         "flight_date",
         "flight_price",
         "company"
+    ]
+
+@admin.register(Hotel)
+class hotel_page(admin.ModelAdmin):
+    list_display = [
+        "hotel_id" ,
+    "hotel_name" ,
+    "hotel_rooms" ,
+    "hotel_price" ,
     ]
