@@ -24,11 +24,15 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 # Create your views here.
 from functools import wraps
 
-# class custom_pagination(PageNumberPagination):
-#     page_size_query_param = "per_page"
-#     page_query_param = "page"
-#     max_page_size = 100
+class custom_pagination(PageNumberPagination):
+    page_size_query_param = "per_page"
+    page_query_param = "page"
+    max_page_size = 100
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
 # def get_user_role(request):
 #     auth = JWTAuthentication()
 #     header  = request.headers.get("Authorization")
@@ -379,6 +383,9 @@ from functools import wraps
 #     queryset = Performance.objects.all()
 #     serializer_class = performance_serializer
 
+from django_filters.rest_framework import DjangoFilterBackend
+import django_filters
+from rest_framework import filters
 from .serializers import flight_serializer,hotel_serializer
 from .models import Flight as flightmodel,Hotel
 
@@ -438,30 +445,46 @@ class CustomRefreshTokenView(APIView):
         except TokenError as e:
             return Response({"detail": "Invalid or expired refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
 
-
-class Hotels(APIView):
+class hotel_filter(django_filters.FilterSet):
+    min_price = django_filters.NumberFilter(field_name="hotel_price", lookup_expr='gte')
+    max_price = django_filters.NumberFilter(field_name="hotel_price", lookup_expr='lte')
+    # departure_date = django_filters.DateFilter(field_name="flight_departure", lookup_expr='date')
+    class Meta:
+        model = Hotel
+        fields = ['min_price',"max_price"]  
+class Hotels(generics.ListCreateAPIView):
+    queryset = Hotel.objects.all()
     authentication_classes = [JWTAuthentication] 
-    def post(self,request):
-        serializers = hotel_serializer(data=request.data)
+    serializer_class = hotel_serializer
+    filter_backends = [DjangoFilterBackend,filters.SearchFilter,filters.OrderingFilter]
+    filterset_class = hotel_filter
+    search_fields = ["hotel_rooms",'hotel_price',"hotel_name"]
+    ordering_fields = ["hotel_rooms",'hotel_price']
+    ordering = ['hotel_price']
+    pagination_class = custom_pagination
+
+    def create(self,request,*args, **kwargs):
+        serializers = self.get_serializer(data=request.data)
         if serializers.is_valid(raise_exception=True):
             serializers.save()
             return Response(serializers.data,status=status.HTTP_200_OK)
         else:
             return Response(serializers.errors,status=status.HTTP_422_UNPROCESSABLE_ENTITY)
     
-    def get(self, request):
-        flights = Hotel.objects.all()   
-        if flights.exists():  
-            serializer = hotel_serializer(flights, many=True)
+    def list(self, request,*args, **kwargs):
+        query = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(query)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        if query.exists():  
+            serializer = hotel_serializer(query, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(
             {"message": "No flight data is currently available"},
             status=status.HTTP_404_NOT_FOUND
         )
 # import django_filters
-from django_filters.rest_framework import DjangoFilterBackend
-import django_filters
-from rest_framework import filters
 class flight_filter(django_filters.FilterSet):
     min_price = django_filters.NumberFilter(field_name="flight_price", lookup_expr='gte')
     max_price = django_filters.NumberFilter(field_name="flight_price", lookup_expr='lte')
@@ -475,9 +498,10 @@ class Flights(viewsets.ModelViewSet):
     serializer_class = flight_serializer
     filter_backends = [DjangoFilterBackend,filters.SearchFilter,filters.OrderingFilter]
     filterset_class = flight_filter
-    search_fields = ['plane_name','flight_name','flight_origin',"flight_departure"]
+    search_fields = ['plane_name','flight_name','flight_origin',"flight_departure",'company']
     ordering_fields = ["flight_origin",'flight_date',"flight_price"]
     ordering = ['flight_departure']
+    # pagination_class  = StandardResultsSetPagination
     def get_queryset(self):
         queryset = super().get_queryset()
         
